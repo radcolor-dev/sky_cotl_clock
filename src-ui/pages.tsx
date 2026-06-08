@@ -6,16 +6,22 @@ import remarkGfm from "remark-gfm";
 import {
   Bell,
   BellOff,
+  CalendarClock,
   CircleCheck,
   Clock,
   Download,
   Eye,
+  Info,
+  Keyboard,
+  Monitor,
+  Palette,
   Plus,
   RefreshCw,
   Search,
   Star,
   TriangleAlert,
   Upload,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +44,12 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { EVENT_DEFINITIONS } from "@/domain/settings";
 import { ACCENT_OPTIONS, FONT_OPTIONS } from "@/domain/theme";
@@ -957,273 +969,420 @@ export function SettingsPage({
   hotkeyError: string;
   onSettingsChange: (settings: AppSettings) => void;
 }) {
+  const [capturingHotkey, setCapturingHotkey] = useState<{
+    id: keyof AppSettings["hotkeys"];
+    label: string;
+  } | null>(null);
+  const enabledEventCount = EVENT_DEFINITIONS.filter(
+    (definition) => settings.events[definition.id] !== false,
+  ).length;
+  const selectedAccent =
+    ACCENT_OPTIONS.find(
+      (accent) => accent.id === settings.appearance.accentColor,
+    ) ?? ACCENT_OPTIONS[0];
+  const selectedFont =
+    FONT_OPTIONS.find((font) => font.id === settings.appearance.fontFamily) ??
+    FONT_OPTIONS[1];
+  const hotkeyRows: Array<{
+    id: keyof AppSettings["hotkeys"];
+    label: string;
+    description: string;
+  }> = [
+    {
+      id: "toggleOverlay",
+      label: "Toggle overlay",
+      description: "Show or hide the overlay window.",
+    },
+    {
+      id: "showMainWindow",
+      label: "Show main window",
+      description: "Bring Isekai back to the foreground.",
+    },
+    {
+      id: "cycleOverlayMode",
+      label: "Cycle overlay mode",
+      description: "Move between clock, route, and map layouts.",
+    },
+    {
+      id: "nextRouteTarget",
+      label: "Next route target",
+      description: "Advance the active route target.",
+    },
+    {
+      id: "previousRouteTarget",
+      label: "Previous route target",
+      description: "Return to the previous route target.",
+    },
+    {
+      id: "toggleRouteTargetComplete",
+      label: "Toggle target complete",
+      description: "Mark the active target open or done.",
+    },
+    {
+      id: "toggleMiniMapExpanded",
+      label: "Expand mini map",
+      description: "Switch the mini map between compact and expanded.",
+    },
+  ];
+  const finishHotkeyCapture = (shortcut: string) => {
+    if (!capturingHotkey) {
+      return;
+    }
+
+    onSettingsChange({
+      ...settings,
+      hotkeys: {
+        ...settings.hotkeys,
+        [capturingHotkey.id]: shortcut,
+      },
+    });
+    setCapturingHotkey(null);
+  };
+
   return (
     <>
       <PageHeader
         title="Settings"
         description="Appearance, event filters, hotkeys, and time display preferences."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary" className="rounded-sm">
+              {selectedAccent.label}
+            </Badge>
+            <Badge variant="outline" className="rounded-sm">
+              {enabledEventCount}/{EVENT_DEFINITIONS.length} events
+            </Badge>
+          </div>
+        }
       />
-      <div className="grid gap-4 p-5 xl:grid-cols-2">
-        <Card className="xl:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base">Appearance</CardTitle>
-            <CardDescription>Accent color and interface font.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label>Accent color</Label>
-              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                {ACCENT_OPTIONS.map((accent) => (
-                  <Button
-                    key={accent.id}
-                    type="button"
-                    variant={
-                      settings.appearance.accentColor === accent.id
-                        ? "default"
-                        : "secondary"
-                    }
-                    className="h-10 justify-start gap-2"
-                    onClick={() =>
-                      onSettingsChange({
-                        ...settings,
-                        appearance: {
-                          ...settings.appearance,
-                          accentColor: accent.id,
-                        },
-                      })
-                    }
-                  >
-                    <span
-                      className="size-4 shrink-0 rounded-full border border-border"
-                      style={{ background: accent.swatch }}
+      <Tabs defaultValue="appearance" className="p-5">
+        <div className="flex flex-col gap-3 border-b border-border pb-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="grid gap-1">
+            <p className="text-sm font-semibold text-foreground">
+              Preferences
+            </p>
+            <p className="max-w-2xl text-xs text-muted-foreground">
+              {settings.display.localTimeZone} / {settings.display.timeFormat}
+            </p>
+          </div>
+          <TabsList className="h-10 w-full justify-start lg:w-auto">
+            <TabsTrigger value="appearance" className="h-8 gap-2 px-4 text-sm">
+              <Palette className="size-4" />
+              Appearance
+            </TabsTrigger>
+            <TabsTrigger value="events" className="h-8 gap-2 px-4 text-sm">
+              <CalendarClock className="size-4" />
+              Events
+            </TabsTrigger>
+            <TabsTrigger value="hotkeys" className="h-8 gap-2 px-4 text-sm">
+              <Keyboard className="size-4" />
+              Hotkeys
+            </TabsTrigger>
+            <TabsTrigger value="time" className="h-8 gap-2 px-4 text-sm">
+              <Clock className="size-4" />
+              Time
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="appearance" className="mt-4">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <SettingsPanel
+              icon={<Palette />}
+              title="Appearance"
+              description="Choose the visual system used across the main window and overlay controls."
+            >
+              <SettingGroup label="Theme">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {(["dark", "light", "system"] as const).map((theme) => (
+                    <ChoiceButton
+                      key={theme}
+                      selected={settings.theme === theme}
+                      label={
+                        theme === "system"
+                          ? "System"
+                          : theme === "dark"
+                            ? "Dark"
+                            : "Light"
+                      }
+                      description={
+                        theme === "system"
+                          ? "Follow OS"
+                          : theme === "dark"
+                            ? "Low glare"
+                            : "Bright UI"
+                      }
+                      icon={<Monitor className="size-4" />}
+                      onClick={() => onSettingsChange({ ...settings, theme })}
                     />
-                    {accent.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label>Font</Label>
-              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                {FONT_OPTIONS.map((font) => (
-                  <Button
-                    key={font.id}
-                    type="button"
-                    variant={
-                      settings.appearance.fontFamily === font.id
-                        ? "default"
-                        : "secondary"
-                    }
-                    className="h-10 justify-start text-sm"
-                    style={{ fontFamily: font.family }}
-                    onClick={() =>
+                  ))}
+                </div>
+              </SettingGroup>
+              <Separator />
+              <SettingGroup label="Accent color">
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                  {ACCENT_OPTIONS.map((accent) => (
+                    <Button
+                      key={accent.id}
+                      type="button"
+                      variant={
+                        settings.appearance.accentColor === accent.id
+                          ? "default"
+                          : "secondary"
+                      }
+                      className="h-10 justify-start gap-2"
+                      onClick={() =>
+                        onSettingsChange({
+                          ...settings,
+                          appearance: {
+                            ...settings.appearance,
+                            accentColor: accent.id,
+                          },
+                        })
+                      }
+                    >
+                      <span
+                        className="size-4 shrink-0 rounded-full border border-border"
+                        style={{ background: accent.swatch }}
+                      />
+                      {accent.label}
+                    </Button>
+                  ))}
+                </div>
+              </SettingGroup>
+              <Separator />
+              <SettingGroup label="Interface font">
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                  {FONT_OPTIONS.map((font) => (
+                    <Button
+                      key={font.id}
+                      type="button"
+                      variant={
+                        settings.appearance.fontFamily === font.id
+                          ? "default"
+                          : "secondary"
+                      }
+                      className="h-10 justify-start text-sm"
+                      style={{ fontFamily: font.family }}
+                      onClick={() =>
+                        onSettingsChange({
+                          ...settings,
+                          appearance: {
+                            ...settings.appearance,
+                            fontFamily: font.id,
+                          },
+                        })
+                      }
+                    >
+                      {font.label}
+                    </Button>
+                  ))}
+                </div>
+              </SettingGroup>
+            </SettingsPanel>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Current Style</CardTitle>
+                <CardDescription>
+                  A quick readout of the active interface choices.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3">
+                <InfoRow label="Theme" value={settings.theme} />
+                <InfoRow label="Accent" value={selectedAccent.label} />
+                <InfoRow label="Font" value={selectedFont.label} />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="events" className="mt-4">
+          <SettingsPanel
+            icon={<CalendarClock />}
+            title="Event Filters"
+            description="Choose which timers are eligible for overview rows, reminders, and overlay clock rows."
+          >
+            <div className="grid gap-2 md:grid-cols-2">
+              {EVENT_DEFINITIONS.map((definition) => (
+                <div
+                  key={definition.id}
+                  className="rounded-md border border-border bg-card/70 p-3 transition-colors hover:bg-muted/25"
+                >
+                  <SettingSwitch
+                    label={definition.title}
+                    description={[
+                      definition.location,
+                      definition.category,
+                      definition.source,
+                    ]
+                      .filter(Boolean)
+                      .join(" - ")}
+                    checked={settings.events[definition.id] !== false}
+                    onCheckedChange={(checked) =>
                       onSettingsChange({
                         ...settings,
-                        appearance: {
-                          ...settings.appearance,
-                          fontFamily: font.id,
+                        events: {
+                          ...settings.events,
+                          [definition.id]: checked,
                         },
                       })
                     }
-                  >
-                    {font.label}
-                  </Button>
-                ))}
-              </div>
+                  />
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Event Filters</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            {EVENT_DEFINITIONS.map((definition) => (
-              <SettingSwitch
-                key={definition.id}
-                label={definition.title}
-                checked={settings.events[definition.id] !== false}
-                onCheckedChange={(checked) =>
-                  onSettingsChange({
-                    ...settings,
-                    events: { ...settings.events, [definition.id]: checked },
-                  })
-                }
-              />
-            ))}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Hotkeys & Display</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="toggle-hotkey">Toggle overlay</Label>
-              <Input
-                id="toggle-hotkey"
-                value={settings.hotkeys.toggleOverlay}
-                onChange={(event) =>
-                  onSettingsChange({
-                    ...settings,
-                    hotkeys: { ...settings.hotkeys, toggleOverlay: event.currentTarget.value },
-                  })
-                }
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="main-hotkey">Show main window</Label>
-              <Input
-                id="main-hotkey"
-                value={settings.hotkeys.showMainWindow}
-                onChange={(event) =>
-                  onSettingsChange({
-                    ...settings,
-                    hotkeys: { ...settings.hotkeys, showMainWindow: event.currentTarget.value },
-                  })
-                }
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="cycle-mode-hotkey">Cycle overlay mode</Label>
-              <Input
-                id="cycle-mode-hotkey"
-                value={settings.hotkeys.cycleOverlayMode}
-                onChange={(event) =>
-                  onSettingsChange({
-                    ...settings,
-                    hotkeys: {
-                      ...settings.hotkeys,
-                      cycleOverlayMode: event.currentTarget.value,
-                    },
-                  })
-                }
-              />
-            </div>
-            <div className="grid gap-2 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="next-route-hotkey">Next route target</Label>
-                <Input
-                  id="next-route-hotkey"
-                  value={settings.hotkeys.nextRouteTarget}
-                  onChange={(event) =>
-                    onSettingsChange({
-                      ...settings,
-                      hotkeys: {
-                        ...settings.hotkeys,
-                        nextRouteTarget: event.currentTarget.value,
-                      },
-                    })
+          </SettingsPanel>
+        </TabsContent>
+
+        <TabsContent value="hotkeys" className="mt-4">
+          <SettingsPanel
+            icon={<Keyboard />}
+            title="Hotkeys"
+            description="Edit global shortcuts for overlay controls and route navigation."
+          >
+            <div className="grid gap-3">
+              {hotkeyRows.map((row) => (
+                <SettingRow
+                  key={row.id}
+                  label={row.label}
+                  description={row.description}
+                  control={
+                    <Input
+                      id={`${row.id}-hotkey`}
+                      readOnly
+                      className="cursor-pointer font-mono"
+                      value={settings.hotkeys[row.id]}
+                      onClick={() =>
+                        setCapturingHotkey({ id: row.id, label: row.label })
+                      }
+                      onFocus={() =>
+                        setCapturingHotkey({ id: row.id, label: row.label })
+                      }
+                    />
                   }
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="previous-route-hotkey">Previous route target</Label>
-                <Input
-                  id="previous-route-hotkey"
-                  value={settings.hotkeys.previousRouteTarget}
-                  onChange={(event) =>
-                    onSettingsChange({
-                      ...settings,
-                      hotkeys: {
-                        ...settings.hotkeys,
-                        previousRouteTarget: event.currentTarget.value,
-                      },
-                    })
-                  }
-                />
-              </div>
-            </div>
-            <div className="grid gap-2 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="complete-route-hotkey">Toggle target complete</Label>
-                <Input
-                  id="complete-route-hotkey"
-                  value={settings.hotkeys.toggleRouteTargetComplete}
-                  onChange={(event) =>
-                    onSettingsChange({
-                      ...settings,
-                      hotkeys: {
-                        ...settings.hotkeys,
-                        toggleRouteTargetComplete: event.currentTarget.value,
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="minimap-hotkey">Expand mini map</Label>
-                <Input
-                  id="minimap-hotkey"
-                  value={settings.hotkeys.toggleMiniMapExpanded}
-                  onChange={(event) =>
-                    onSettingsChange({
-                      ...settings,
-                      hotkeys: {
-                        ...settings.hotkeys,
-                        toggleMiniMapExpanded: event.currentTarget.value,
-                      },
-                    })
-                  }
-                />
-              </div>
+              ))}
             </div>
             {hotkeyError ? (
-              <div className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-                {hotkeyError}
+              <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+                <p>{hotkeyError}</p>
               </div>
             ) : null}
-            <Separator />
-            <SettingSwitch
-              label="Show Sky Time"
-              checked={settings.display.showSkyTime}
-              onCheckedChange={(showSkyTime) =>
-                onSettingsChange({ ...settings, display: { ...settings.display, showSkyTime } })
-              }
-            />
-            <SettingSwitch
-              label="Show local time"
-              checked={settings.display.showLocalTime}
-              onCheckedChange={(showLocalTime) =>
-                onSettingsChange({ ...settings, display: { ...settings.display, showLocalTime } })
-              }
-            />
-            <div className="grid gap-2">
-              <Label htmlFor="local-timezone">Local timezone</Label>
-              <Select
-                value={settings.display.localTimeZone}
-                onValueChange={(localTimeZone) =>
+          </SettingsPanel>
+        </TabsContent>
+
+        <TabsContent value="time" className="mt-4">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <SettingsPanel
+              icon={<Clock />}
+              title="Time Display"
+              description="Control how event rows present Sky time and your local timezone."
+            >
+              <SettingSwitch
+                label="Show Sky Time"
+                description="Display Sky Mean Time beside event rows."
+                checked={settings.display.showSkyTime}
+                onCheckedChange={(showSkyTime) =>
                   onSettingsChange({
                     ...settings,
-                    display: { ...settings.display, localTimeZone },
+                    display: { ...settings.display, showSkyTime },
                   })
                 }
-              >
-                <SelectTrigger id="local-timezone" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {getTimeZoneOptions(settings.display.localTimeZone).map(
-                    (timeZone) => (
-                      <SelectItem key={timeZone} value={timeZone}>
-                        {timeZone}
-                      </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="xl:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base">About</CardTitle>
-            <CardDescription>
-              Made with ❤️ for my vet who adopted a moth.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+              />
+              <SettingSwitch
+                label="Show local time"
+                description="Display converted local labels beside event rows."
+                checked={settings.display.showLocalTime}
+                onCheckedChange={(showLocalTime) =>
+                  onSettingsChange({
+                    ...settings,
+                    display: { ...settings.display, showLocalTime },
+                  })
+                }
+              />
+              <Separator />
+              <SettingGroup label="Time format">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {(["system", "12h", "24h"] as const).map((timeFormat) => (
+                    <ChoiceButton
+                      key={timeFormat}
+                      selected={settings.display.timeFormat === timeFormat}
+                      label={
+                        timeFormat === "system"
+                          ? "System"
+                          : timeFormat === "12h"
+                            ? "12-hour"
+                            : "24-hour"
+                      }
+                      description={
+                        timeFormat === "system"
+                          ? "Use locale"
+                          : timeFormat === "12h"
+                            ? "AM / PM"
+                            : "00:00"
+                      }
+                      onClick={() =>
+                        onSettingsChange({
+                          ...settings,
+                          display: { ...settings.display, timeFormat },
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              </SettingGroup>
+              <SettingGroup label="Local timezone">
+                <Select
+                  value={settings.display.localTimeZone}
+                  onValueChange={(localTimeZone) =>
+                    onSettingsChange({
+                      ...settings,
+                      display: { ...settings.display, localTimeZone },
+                    })
+                  }
+                >
+                  <SelectTrigger id="local-timezone" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getTimeZoneOptions(settings.display.localTimeZone).map(
+                      (timeZone) => (
+                        <SelectItem key={timeZone} value={timeZone}>
+                          {timeZone}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </SettingGroup>
+            </SettingsPanel>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Info className="size-4 text-primary" />
+                  About
+                </CardTitle>
+                <CardDescription>
+                  Isekai desktop settings.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3">
+                <InfoRow label="Timezone" value={settings.display.localTimeZone} />
+                <InfoRow label="Format" value={settings.display.timeFormat} />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+      <HotkeyCaptureDialog
+        target={capturingHotkey}
+        currentShortcut={
+          capturingHotkey ? settings.hotkeys[capturingHotkey.id] : ""
+        }
+        onCancel={() => setCapturingHotkey(null)}
+        onCapture={finishHotkeyCapture}
+      />
     </>
   );
 }
@@ -2348,18 +2507,298 @@ function ItemCard({
   );
 }
 
+const MODIFIER_KEYS = new Set(["Alt", "Control", "Meta", "Shift"]);
+
+function HotkeyCaptureDialog({
+  target,
+  currentShortcut,
+  onCancel,
+  onCapture,
+}: {
+  target: { id: keyof AppSettings["hotkeys"]; label: string } | null;
+  currentShortcut: string;
+  onCancel: () => void;
+  onCapture: (shortcut: string) => void;
+}) {
+  const [preview, setPreview] = useState("");
+
+  useEffect(() => {
+    if (!target) {
+      setPreview("");
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (event.key === "Escape") {
+        onCancel();
+        return;
+      }
+
+      const shortcut = shortcutFromKeyboardEvent(event);
+      setPreview(shortcut || modifierPreviewFromKeyboardEvent(event));
+
+      if (shortcut) {
+        onCapture(shortcut);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, true);
+    };
+  }, [onCancel, onCapture, target]);
+
+  if (!target) {
+    return null;
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-background/70 p-5 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onCancel();
+        }
+      }}
+    >
+      <Card
+        className="w-full max-w-md shadow-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="hotkey-capture-title"
+      >
+        <CardHeader className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
+          <div>
+            <CardTitle id="hotkey-capture-title" className="text-base">
+              Press a shortcut
+            </CardTitle>
+            <CardDescription>
+              {target.label}
+            </CardDescription>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Cancel shortcut capture"
+            onClick={onCancel}
+          >
+            <X className="size-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid min-h-24 place-items-center rounded-md border border-dashed border-border bg-muted/30 p-4 text-center">
+            <div className="grid gap-2">
+              <p className="text-xs font-medium text-muted-foreground">
+                Hold modifiers, then press the final key
+              </p>
+              <p className="font-mono text-2xl font-semibold tabular-nums">
+                {preview || currentShortcut || "..."}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Escape cancels. The shortcut saves automatically after the final key.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function shortcutFromKeyboardEvent(event: KeyboardEvent) {
+  const key = normalizeShortcutKey(event.key, event.code);
+  if (!key) {
+    return "";
+  }
+
+  return [...modifierPartsFromKeyboardEvent(event), key].join("+");
+}
+
+function modifierPreviewFromKeyboardEvent(event: KeyboardEvent) {
+  return modifierPartsFromKeyboardEvent(event).join("+");
+}
+
+function modifierPartsFromKeyboardEvent(event: KeyboardEvent) {
+  return [
+    event.ctrlKey ? "Ctrl" : null,
+    event.altKey ? "Alt" : null,
+    event.shiftKey ? "Shift" : null,
+    event.metaKey ? "Meta" : null,
+  ].filter(Boolean) as string[];
+}
+
+function normalizeShortcutKey(key: string, code: string) {
+  if (MODIFIER_KEYS.has(key)) {
+    return "";
+  }
+
+  if (/^F(?:[1-9]|1\d|2[0-4])$/.test(key)) {
+    return key;
+  }
+
+  if (/^Key[A-Z]$/.test(code)) {
+    return code.slice(3);
+  }
+
+  if (/^Digit\d$/.test(code)) {
+    return code.slice(5);
+  }
+
+  if (/^Numpad\d$/.test(code)) {
+    return `Numpad${code.slice(6)}`;
+  }
+
+  const namedKeys: Record<string, string> = {
+    " ": "Space",
+    ArrowDown: "ArrowDown",
+    ArrowLeft: "ArrowLeft",
+    ArrowRight: "ArrowRight",
+    ArrowUp: "ArrowUp",
+    Backspace: "Backspace",
+    Delete: "Delete",
+    End: "End",
+    Enter: "Enter",
+    Home: "Home",
+    Insert: "Insert",
+    PageDown: "PageDown",
+    PageUp: "PageUp",
+    Spacebar: "Space",
+    Tab: "Tab",
+  };
+
+  if (namedKeys[key]) {
+    return namedKeys[key];
+  }
+
+  if (key.length === 1) {
+    return key.toUpperCase();
+  }
+
+  return key;
+}
+
+function SettingsPanel({
+  icon,
+  title,
+  description,
+  children,
+}: {
+  icon: React.ReactElement;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary ring-1 ring-primary/15 [&_svg]:size-4">
+            {icon}
+          </span>
+          {title}
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4">{children}</CardContent>
+    </Card>
+  );
+}
+
+function SettingGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid gap-2">
+      <Label className="text-xs font-semibold uppercase text-muted-foreground">
+        {label}
+      </Label>
+      {children}
+    </div>
+  );
+}
+
+function SettingRow({
+  label,
+  description,
+  control,
+}: {
+  label: string;
+  description: string;
+  control: React.ReactNode;
+}) {
+  return (
+    <div className="grid gap-3 rounded-md border border-border bg-card/70 p-3 md:grid-cols-[minmax(0,1fr)_minmax(13rem,18rem)] md:items-center">
+      <div className="min-w-0">
+        <Label className="text-sm font-medium">{label}</Label>
+        <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+      </div>
+      {control}
+    </div>
+  );
+}
+
+function ChoiceButton({
+  selected,
+  label,
+  description,
+  icon,
+  onClick,
+}: {
+  selected: boolean;
+  label: string;
+  description: string;
+  icon?: React.ReactElement;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "grid min-h-20 gap-1 rounded-md border bg-card/70 p-3 text-left transition-colors hover:bg-muted/30",
+        selected
+          ? "border-primary/45 bg-primary/10 text-foreground ring-1 ring-primary/20"
+          : "border-border text-foreground",
+      )}
+      onClick={onClick}
+    >
+      <span className="flex items-center gap-2 text-sm font-semibold">
+        {icon}
+        {label}
+      </span>
+      <span className="text-xs text-muted-foreground">{description}</span>
+    </button>
+  );
+}
+
 function SettingSwitch({
   label,
+  description,
   checked,
   onCheckedChange,
 }: {
   label: string;
+  description?: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <Label>{label}</Label>
+      <div className="min-w-0">
+        <Label>{label}</Label>
+        {description ? (
+          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+        ) : null}
+      </div>
       <Switch checked={checked} onCheckedChange={onCheckedChange} />
     </div>
   );
