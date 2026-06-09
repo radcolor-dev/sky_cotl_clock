@@ -22,6 +22,9 @@ The app is Windows-first and includes:
 For questions, feedback, and release support, join the Isekai Discord:
 https://discord.gg/a7vGCk7XQa
 
+If Isekai helps you and you want to support the work, you can donate here:
+https://radcolor.dev/donate
+
 ## Development
 
 ```bash

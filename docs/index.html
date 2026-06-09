@@ -34,6 +34,7 @@
       <nav aria-label="Main navigation">
         <a href="#features">Features</a>
         <a href="#privacy">Privacy</a>
+        <a href="https://radcolor.dev/donate" target="_blank" rel="noreferrer">Donate</a>
         <a href="https://discord.gg/a7vGCk7XQa" target="_blank" rel="noreferrer">Support</a>
         <a href="#faq">FAQ</a>
       </nav>
@@ -51,16 +52,12 @@
             <a id="downloadButton" class="button primary magnet" href="https://github.com/radcolor/sky_cotl_clock/releases/latest">
               <span>Download latest version</span>
             </a>
-            <a class="button secondary magnet" href="https://github.com/radcolor/sky_cotl_clock">
-              <span>View source</span>
-            </a>
             <a class="button secondary magnet" href="https://discord.gg/a7vGCk7XQa" target="_blank" rel="noreferrer">
               <span>Join Discord support</span>
             </a>
-          </div>
-          <div class="release-card" aria-live="polite">
-            <span class="pulse-dot"></span>
-            <p id="releaseStatus">Checking the latest release...</p>
+            <a class="button donate magnet" href="https://radcolor.dev/donate" target="_blank" rel="noreferrer">
+              <span>Donate</span>
+            </a>
           </div>
         </div>
 
@@ -72,26 +69,20 @@
                 <span></span>
                 <span></span>
               </div>
-              <span class="window-title">Isekai desktop preview</span>
             </div>
-            <img
-              src="https://raw.githubusercontent.com/radcolor/sky_cotl_clock/main/assets/product-demo.gif"
-              alt="Isekai desktop app demo"
-            />
-          </div>
-          <div class="preview-metrics" aria-label="App highlights">
-            <div>
-              <span>Next event</span>
-              <strong>5m 10s</strong>
-            </div>
-            <div>
-              <span>Overlay</span>
-              <strong>Hotkey ready</strong>
-            </div>
-            <div>
-              <span>Data</span>
-              <strong>Stored locally</strong>
-            </div>
+            <video
+              autoplay
+              loop
+              muted
+              playsinline
+              poster="https://raw.githubusercontent.com/radcolor/sky_cotl_clock/main/assets/product-demo.gif"
+              aria-label="Isekai desktop app demo"
+            >
+              <source
+                src="https://raw.githubusercontent.com/radcolor/sky_cotl_clock/main/assets/export-1780652649327.mp4"
+                type="video/mp4"
+              />
+            </video>
           </div>
         </div>
       </section>
@@ -118,12 +109,6 @@
         <div class="section-heading" data-reveal>
           <p class="eyebrow">Features</p>
           <h2>Everything nearby while you play</h2>
-        </div>
-
-        <div class="feature-tabs" role="tablist" aria-label="Feature categories" data-reveal>
-          <button class="tab-button active" type="button" role="tab" aria-selected="true" data-tab="timers">Timers</button>
-          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="planning">Planning</button>
-          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="desktop">Desktop</button>
         </div>
 
         <div class="feature-grid">
@@ -197,8 +182,16 @@
             <p>Use the download button on this page or the official GitHub releases page for this repository.</p>
           </details>
           <details>
+            <summary>Where is the source code?</summary>
+            <p>Isekai is open source on GitHub at <a href="https://github.com/radcolor/sky_cotl_clock" target="_blank" rel="noreferrer">github.com/radcolor/sky_cotl_clock</a>.</p>
+          </details>
+          <details>
             <summary>Where can I get support?</summary>
             <p>Join the Isekai Discord support server at <a href="https://discord.gg/a7vGCk7XQa" target="_blank" rel="noreferrer">discord.gg/a7vGCk7XQa</a>.</p>
+          </details>
+          <details>
+            <summary>How can I support development?</summary>
+            <p>You can donate at <a href="https://radcolor.dev/donate" target="_blank" rel="noreferrer">radcolor.dev/donate</a> to support ongoing work on Isekai.</p>
           </details>
         </div>
       </section>
@@ -206,7 +199,7 @@
 
     <footer>
       <span>Isekai v<span id="packageVersion">0.1.4</span></span>
-      <span>Unofficial fan project for Sky players.</span>
+      <span>Unofficial fan project for Sky players. <a href="https://github.com/radcolor/sky_cotl_clock" target="_blank" rel="noreferrer">Source on GitHub</a>.</span>
     </footer>
 
     <script src="script.js"></script>

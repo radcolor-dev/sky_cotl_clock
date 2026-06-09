@@ -4,7 +4,6 @@ const apiUrl = `https://api.github.com/repos/${repo}/releases/latest`;
 const currentVersion = "0.1.4";
 
 const downloadButton = document.querySelector("#downloadButton");
-const releaseStatus = document.querySelector("#releaseStatus");
 const packageVersion = document.querySelector("#packageVersion");
 const cursorLight = document.querySelector(".cursor-light");
 const navLinks = [...document.querySelectorAll("nav a")];
@@ -44,17 +43,14 @@ async function hydrateLatestRelease() {
     if (asset) {
       downloadButton.href = asset.browser_download_url;
       downloadButton.querySelector("span").textContent = `Download ${version}`;
-      releaseStatus.textContent = `${asset.name} from the latest GitHub release.`;
       return;
     }
 
     downloadButton.href = release.html_url || releasesUrl;
     downloadButton.querySelector("span").textContent = `View ${version}`;
-    releaseStatus.textContent = "Open the latest GitHub release to choose an installer.";
   } catch (error) {
     downloadButton.href = releasesUrl;
     downloadButton.querySelector("span").textContent = "Download latest version";
-    releaseStatus.textContent = "Latest release opens on GitHub.";
   }
 }
 
@@ -73,20 +69,6 @@ function setActiveNav() {
   });
 }
 
-function setFeatureTab(category) {
-  document.querySelectorAll(".tab-button").forEach((button) => {
-    const active = button.dataset.tab === category;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-selected", String(active));
-  });
-
-  document.querySelectorAll(".feature-grid article").forEach((card) => {
-    const active = card.dataset.category === category;
-    card.classList.toggle("active-card", active);
-    card.classList.toggle("dimmed", !active);
-  });
-}
-
 document.querySelectorAll("[data-reveal]").forEach((element) => {
   const observer = new IntersectionObserver(
     (entries) => {
@@ -101,10 +83,6 @@ document.querySelectorAll("[data-reveal]").forEach((element) => {
   );
 
   observer.observe(element);
-});
-
-document.querySelectorAll(".tab-button").forEach((button) => {
-  button.addEventListener("click", () => setFeatureTab(button.dataset.tab));
 });
 
 document.querySelectorAll("details").forEach((details) => {
@@ -133,5 +111,4 @@ document.addEventListener("pointerleave", () => {
 document.addEventListener("scroll", setActiveNav, { passive: true });
 
 hydrateLatestRelease();
-setFeatureTab("timers");
 setActiveNav();
