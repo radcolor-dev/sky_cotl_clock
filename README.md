@@ -13,7 +13,11 @@ The app is Windows-first and includes:
 
 ## Product Demo
 
-![Isekai product demo](assets/product-demo.gif)
+<div align="center">
+
+https://github.com/user-attachments/assets/c1aa4cb3-f4ac-4f88-bf0a-91947119247c
+
+</div>
 
 [View MP4 demo](assets/export-1780652649327.mp4)
 
