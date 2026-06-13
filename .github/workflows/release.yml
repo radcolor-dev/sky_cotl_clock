@@ -2,6 +2,12 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      notifyDiscordOnly:
+        description: "Send Discord notification for latest GitHub Release without building"
+        required: false
+        type: boolean
+        default: false
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
@@ -11,7 +17,7 @@ on:
 jobs:
   release-windows:
     name: Build Windows MSI
-    if: github.event_name != 'release'
+    if: github.event_name != 'release' && inputs.notifyDiscordOnly != true
     runs-on: windows-latest
 
     permissions:
@@ -56,23 +62,49 @@ jobs:
 
   notify-discord:
     name: Notify Discord
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: (github.event_name == 'release' && github.event.action == 'published') || (github.event_name == 'workflow_dispatch' && inputs.notifyDiscordOnly == true)
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+
     steps:
+      - name: Get latest release for manual test
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases/latest" > latest-release.json
+          {
+            echo "RELEASE_NAME=$(jq -r '.name // .tag_name' latest-release.json)"
+            echo "RELEASE_TAG=$(jq -r '.tag_name' latest-release.json)"
+            echo "RELEASE_URL=$(jq -r '.html_url' latest-release.json)"
+            echo "RELEASE_PRERELEASE=$(jq -r '.prerelease' latest-release.json)"
+            echo "RELEASE_BODY<<EOF"
+            jq -r '.body // ""' latest-release.json
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
       - name: Send release notification
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK_URL }}
-          RELEASE_NAME: ${{ github.event.release.name }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-          RELEASE_URL: ${{ github.event.release.html_url }}
-          RELEASE_BODY: ${{ github.event.release.body }}
-          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+          EVENT_RELEASE_NAME: ${{ github.event.release.name }}
+          EVENT_RELEASE_TAG: ${{ github.event.release.tag_name }}
+          EVENT_RELEASE_URL: ${{ github.event.release.html_url }}
+          EVENT_RELEASE_BODY: ${{ github.event.release.body }}
+          EVENT_RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
         run: |
           if [ -z "$DISCORD_WEBHOOK_URL" ]; then
             echo "Missing DISCORD_RELEASE_WEBHOOK_URL repository secret."
             exit 1
           fi
+
+          export RELEASE_NAME="${RELEASE_NAME:-$EVENT_RELEASE_NAME}"
+          export RELEASE_TAG="${RELEASE_TAG:-$EVENT_RELEASE_TAG}"
+          export RELEASE_URL="${RELEASE_URL:-$EVENT_RELEASE_URL}"
+          export RELEASE_PRERELEASE="${RELEASE_PRERELEASE:-$EVENT_RELEASE_PRERELEASE}"
+          export RELEASE_BODY="${RELEASE_BODY:-$EVENT_RELEASE_BODY}"
 
           node <<'NODE'
           const fs = require("fs");
