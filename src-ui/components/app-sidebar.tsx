@@ -1,19 +1,17 @@
 import type * as React from "react";
 import {
   CalendarDays,
-  CheckSquare,
   Eye,
   Flame,
   Map,
   Monitor,
   Moon,
-  Search,
   Settings,
   Sparkles,
   Sun,
   Upload,
 } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { SidebarCalendar } from "@/components/sidebar-calendar";
 import {
   Sidebar,
   SidebarContent,
@@ -73,8 +71,6 @@ const sections: Array<{
       { id: "calendar", titleKey: "nav.calendar", icon: CalendarDays },
       { id: "routes", titleKey: "nav.routes", icon: Map },
       { id: "candle-runs", titleKey: "nav.candleRuns", icon: Flame },
-      { id: "goals", titleKey: "nav.goals", icon: CheckSquare },
-      { id: "collection", titleKey: "nav.collection", icon: Search },
     ],
   },
   {
@@ -111,16 +107,14 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const { t } = useI18n(settings.language);
   return (
-    <Sidebar collapsible="none" {...props}>
+    <Sidebar collapsible="none" className="border-r border-sidebar-border" {...props}>
       <SidebarContent>
         <SidebarGroup className="px-0 pt-2">
           <SidebarGroupContent>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => date && onSelectedDateChange(date)}
-              captionLayout="dropdown"
-              className="bg-transparent [--cell-size:2.08rem]"
+            <SidebarCalendar
+              selectedDate={selectedDate}
+              onSelectedDateChange={onSelectedDateChange}
+              onOpenCalendar={() => onPageChange("calendar")}
             />
           </SidebarGroupContent>
         </SidebarGroup>

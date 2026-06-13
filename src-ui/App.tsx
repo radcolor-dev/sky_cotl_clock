@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type AnimationEvent,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import type { Update } from "@tauri-apps/plugin-updater";
@@ -928,7 +929,10 @@ function App() {
   return (
     <TooltipProvider>
       <div className="app-main-shell flex h-svh min-h-0 flex-col overflow-hidden">
-        <SidebarProvider className="min-h-0 flex-1 flex-col">
+        <SidebarProvider
+          className="min-h-0 flex-1 flex-col"
+          style={{ "--sidebar-width": "17.5rem" } as CSSProperties}
+        >
           <AppTitlebar pageTitle={titlebarPageTitle} />
           <div className="app-workspace flex min-h-0 flex-1">
             <AppSidebar
