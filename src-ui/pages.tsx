@@ -868,8 +868,8 @@ export function CandleRunsPage({
           </CardContent>
         </Card>
 
-        <div className="grid gap-4">
-          <Card>
+        <div className="grid w-full gap-4 self-start">
+          <Card className={selectedRun?.imageUrl ? "overflow-hidden pt-0" : undefined}>
             {selectedRun?.imageUrl ? (
               <CandleRunMapPreview
                 imageUrl={selectedRun.imageUrl}

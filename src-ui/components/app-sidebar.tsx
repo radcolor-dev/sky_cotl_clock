@@ -4,7 +4,6 @@ import {
   CheckSquare,
   Eye,
   Flame,
-  Gamepad2,
   Map,
   Monitor,
   Moon,
@@ -66,7 +65,6 @@ const sections: Array<{
     items: [
       { id: "overview", titleKey: "nav.overview", icon: Sparkles },
       { id: "overlay", titleKey: "nav.overlay", icon: Eye },
-      { id: "discord-rpc", titleKey: "nav.discordRpc", icon: Gamepad2 },
     ],
   },
   {
