@@ -2,15 +2,8 @@
   "name": "dev_radcolor_isekai",
   "private": true,
   "version": "0.2.1",
+  "license": "GPL-3.0-only",
   "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/radcolor-dev/sky_cotl_clock.git"
-  },
-  "bugs": {
-    "url": "https://github.com/radcolor-dev/sky_cotl_clock/issues"
-  },
-  "homepage": "https://github.com/radcolor-dev/sky_cotl_clock#readme",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
