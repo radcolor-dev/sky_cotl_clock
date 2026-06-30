@@ -28,6 +28,8 @@ tauri-plugin-notification = "2.3.3"
 tauri-plugin-single-instance = "2"
 tauri-plugin-prevent-default = { version = "5.0.2", features = ["platform-windows"] }
 discord-rich-presence = "1.1.0"
+chrono = "0.4.44"
+chrono-tz = "0.10.4"
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-updater = "2.10.1"
