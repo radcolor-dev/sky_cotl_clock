@@ -3,7 +3,11 @@ use discord_rich_presence::{
     DiscordIpc, DiscordIpcClient,
 };
 use domain::events::{EventGenerationSettings, EventInstance};
+use domain::skygame::{
+    SkyActiveRoute, SkyCalendarQuery, SkyItemSearchQuery, SkyRouteFilters, SkyRouteProgress,
+};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::sync::Mutex;
 use tauri::{
     menu::MenuBuilder,
@@ -149,6 +153,104 @@ fn get_overlay_events(
     Ok(domain::events::get_overlay_events(now, &settings))
 }
 
+#[tauri::command]
+fn skygame_get_meta() -> Value {
+    domain::skygame::sky_game_data().meta().clone()
+}
+
+#[tauri::command]
+fn skygame_get_stats() -> Value {
+    domain::skygame::sky_game_data().stats().clone()
+}
+
+#[tauri::command]
+fn skygame_get_source_stats() -> Value {
+    domain::skygame::sky_game_data().source_stats().clone()
+}
+
+#[tauri::command]
+fn skygame_get_source_groups() -> Value {
+    domain::skygame::sky_game_data().source_groups().clone()
+}
+
+#[tauri::command]
+fn skygame_get_candle_runs() -> Vec<Value> {
+    domain::skygame::sky_game_data().candle_runs()
+}
+
+#[tauri::command]
+fn skygame_get_candle_run(guid: String) -> Option<Value> {
+    domain::skygame::sky_game_data().candle_run(&guid)
+}
+
+#[tauri::command]
+fn skygame_get_realms() -> Vec<Value> {
+    domain::skygame::sky_game_data().realms()
+}
+
+#[tauri::command]
+fn skygame_get_realm(guid: String) -> Option<Value> {
+    domain::skygame::sky_game_data().realm(&guid)
+}
+
+#[tauri::command]
+fn skygame_get_area(guid: String) -> Option<Value> {
+    domain::skygame::sky_game_data().area(&guid)
+}
+
+#[tauri::command]
+fn skygame_get_areas_for_realm(realm_guid: String) -> Vec<Value> {
+    domain::skygame::sky_game_data().areas_for_realm(&realm_guid)
+}
+
+#[tauri::command]
+fn skygame_get_calendar_entries(query: SkyCalendarQuery) -> Vec<Value> {
+    domain::skygame::sky_game_data().calendar_entries(&query)
+}
+
+#[tauri::command]
+fn skygame_search_items(query: SkyItemSearchQuery) -> Vec<Value> {
+    domain::skygame::sky_game_data().search_items(&query)
+}
+
+#[tauri::command]
+fn skygame_get_item_detail(guid: String) -> Option<Value> {
+    domain::skygame::sky_game_data().item_detail(&guid)
+}
+
+#[tauri::command]
+fn skygame_get_realm_route(realm_guid: String) -> Option<Value> {
+    domain::skygame::sky_game_data().realm_route(&realm_guid)
+}
+
+#[tauri::command]
+fn skygame_get_area_route(area_guid: String) -> Option<Value> {
+    domain::skygame::sky_game_data().area_route(&area_guid)
+}
+
+#[tauri::command]
+fn skygame_get_route_targets(area_guid: String, filters: SkyRouteFilters) -> Vec<Value> {
+    domain::skygame::sky_game_data().route_targets(&area_guid, &filters)
+}
+
+#[tauri::command]
+fn skygame_get_route_target(guid: String) -> Option<Value> {
+    domain::skygame::sky_game_data().route_target(&guid)
+}
+
+#[tauri::command]
+fn skygame_get_mini_map_pins(area_guid: String, filters: SkyRouteFilters) -> Vec<Value> {
+    domain::skygame::sky_game_data().mini_map_pins(&area_guid, &filters)
+}
+
+#[tauri::command]
+fn skygame_get_active_route_target(
+    active_route: Option<SkyActiveRoute>,
+    progress: Option<SkyRouteProgress>,
+) -> Option<Value> {
+    domain::skygame::sky_game_data().active_route_target(active_route.as_ref(), progress.as_ref())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default()
@@ -218,6 +320,25 @@ pub fn run() {
             discord_rpc_clear,
             generate_event_instances,
             get_overlay_events,
+            skygame_get_meta,
+            skygame_get_stats,
+            skygame_get_source_stats,
+            skygame_get_source_groups,
+            skygame_get_candle_runs,
+            skygame_get_candle_run,
+            skygame_get_realms,
+            skygame_get_realm,
+            skygame_get_area,
+            skygame_get_areas_for_realm,
+            skygame_get_calendar_entries,
+            skygame_search_items,
+            skygame_get_item_detail,
+            skygame_get_realm_route,
+            skygame_get_area_route,
+            skygame_get_route_targets,
+            skygame_get_route_target,
+            skygame_get_mini_map_pins,
+            skygame_get_active_route_target,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
