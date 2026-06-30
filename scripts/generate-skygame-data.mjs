@@ -13,8 +13,10 @@ const sourcePath = path.join(
   "assets",
   "everything.json",
 );
-const outDir = path.join(root, "src-ui", "data", "skygame");
-const outPath = path.join(outDir, "selected-data.json");
+const outPaths = [
+  path.join(root, "src-ui", "data", "skygame", "selected-data.json"),
+  path.join(root, "src-rs", "src", "data", "skygame", "selected-data.json"),
+];
 
 const sourcePackage = JSON.parse(fs.readFileSync(packagePath, "utf8"));
 const rawData = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
@@ -261,10 +263,12 @@ const bundle = {
   },
 };
 
-fs.mkdirSync(outDir, { recursive: true });
-fs.writeFileSync(outPath, `${JSON.stringify(bundle, null, 2)}\n`);
+for (const outPath of outPaths) {
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  fs.writeFileSync(outPath, `${JSON.stringify(bundle, null, 2)}\n`);
+}
 
-console.log(`Generated ${path.relative(root, outPath)}`);
+console.log(`Generated ${outPaths.map((outPath) => path.relative(root, outPath)).join(", ")}`);
 console.log(JSON.stringify(bundle.stats, null, 2));
 
 function point(value) {
