@@ -18,6 +18,27 @@ const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 const DISCORD_CLIENT_ID: Option<&str> = option_env!("ISEKAI_DISCORD_CLIENT_ID");
 
+#[cfg(not(debug_assertions))]
+fn prevent_default_shortcuts() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    #[cfg(target_os = "windows")]
+    {
+        use tauri_plugin_prevent_default::{Builder, PlatformOptions};
+
+        Builder::new()
+            .platform(
+                PlatformOptions::new()
+                    .browser_accelerator_keys(false)
+                    .default_context_menus(false),
+            )
+            .build()
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        tauri_plugin_prevent_default::init()
+    }
+}
+
 #[derive(Default)]
 struct DiscordRpcManager {
     client: Option<DiscordIpcClient>,
@@ -105,7 +126,7 @@ fn discord_rpc_clear(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .manage(Mutex::new(DiscordRpcManager::default()))
         .setup(|app| {
             let menu = MenuBuilder::new(app)
@@ -159,7 +180,12 @@ pub fn run() {
             show_main_window(app);
         }))
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_opener::init());
+
+    #[cfg(not(debug_assertions))]
+    let builder = builder.plugin(prevent_default_shortcuts());
+
+    builder
         .invoke_handler(tauri::generate_handler![
             is_process_running,
             discord_rpc_status,
