@@ -106,7 +106,7 @@ Yes. Discord Rich Presence works through the Discord desktop app, so Discord mus
 
 ### Where can I get support?
 
-Message on [Telegram](https://t.me/radcolordev) for questions, feedback, and release support.
+Join us on [Discord](https://discord.gg/rAX2WBvjjh) or message us on [Telegram](https://t.me/radcolordev) for questions, feedback, and release support.
 
 ## Disclaimer
 
